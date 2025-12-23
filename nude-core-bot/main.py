@@ -16,7 +16,7 @@ import json
 import logging
 import subprocess
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from collections import defaultdict
 from typing import Optional
@@ -40,9 +40,6 @@ LANG_DIR.mkdir(exist_ok=True)
 COMMANDS_CSV.touch(exist_ok=True)
 WARN_FILE.touch(exist_ok=True)
 
-VERSION = "v.6.1.0-beta - 2025-10-25"
-AUTOR = "Trotroni"
-
 #lancement chrono 
 start = time.perf_counter()
 
@@ -65,7 +62,6 @@ logger = logging.getLogger("DiscordBot")
 # ========================================
 
 load_dotenv(dotenv_path="../var.env")
-load_dotenv(dotenv_path="token.env", override=True)
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 GUILD_ID = os.getenv("GUILD_ID")
@@ -74,6 +70,7 @@ ADMIN_ROLE_ID = os.getenv("ADMIN_ROLE_ID")
 DEFAULT_LANGUAGE = os.getenv("DEFAULT_LANGUAGE", "fr")
 ephemeral_env = os.getenv("EPHEMERAL_GLOBAL", "true").lower()
 EPHEMERAL_GLOBAL = ephemeral_env == "true"
+VERSION = os.getenv("VERSION")
 
 if not DISCORD_TOKEN:
     logger.error("❌ DISCORD_TOKEN manquant dans les fichiers .env")
@@ -182,7 +179,8 @@ def is_admin(interaction: discord.Interaction) -> bool:
 async def check_command_cooldown(user_id: int, channel) -> bool:
     now = time.time()
     if now < command_cooldowns[user_id]:
-        await channel.send(f"⏱️ Cooldown actif ({command_cooldowns[user_id]-now:.1f}s restant)", delete_after=3)
+        remaining = int(command_cooldowns[user_id] - now)  # Convertir en int
+        await channel.send(f"⏱️ Cooldown actif ({remaining}s restant)", delete_after=3)
         return False
     command_cooldowns[user_id] = now + COMMAND_COOLDOWN
     return True
@@ -373,7 +371,7 @@ async def ping(interaction: discord.Interaction):
             time=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         ),
         ephemeral=EPHEMERAL_GLOBAL
-)
+    )
 
 @bot.tree.command(name="info", description="Info sur le bot")
 async def info(interaction: discord.Interaction):
@@ -384,8 +382,7 @@ async def info(interaction: discord.Interaction):
         t(
             "info_response",
             interaction,
-            version=VERSION,
-            autor=AUTOR
+            version=VERSION
         ),
         ephemeral=EPHEMERAL_GLOBAL
 )
@@ -592,24 +589,34 @@ async def delete_command(interaction: discord.Interaction, name: str):
 @bot.tree.command(name="warn", description="Met un warn à un utilisateur")
 @app_commands.describe(user="Utilisateur", reason="Raison")
 async def warn_command(interaction: discord.Interaction, user: discord.Member, reason: str):
-    user = interaction.user
-    name = interaction.command.name
-    logger.info(f"L'utilisateur {user} a exécuté la commande {name}")
+    cmd_user = interaction.user
+    cmd_name = interaction.command.name
+    logger.info(f"L'utilisateur {cmd_user} a exécuté la commande {cmd_name}")
+
     if not is_admin(interaction):
-        await interaction.response.send_message("permission_denied", ephemeral=EPHEMERAL_GLOBAL
-)
+        await interaction.response.send_message(
+            t("permission_denied", interaction),
+            ephemeral=EPHEMERAL_GLOBAL
+        )
         return
+
     uid = user.id
     warns_data.setdefault(uid, {"count": 0, "reasons": []})
     warns_data[uid]["count"] += 1
     warns_data[uid]["reasons"].append(reason)
     save_warns(warns_data)
-    await interaction.response.send_message(f"{user.mention} reçoit un warn ({reason}). Total: {warns_data[uid]['count']}", ephemeral=EPHEMERAL_GLOBAL
-)
+
+    await interaction.response.send_message(
+        f"{user.mention} reçoit un warn ({reason}). Total: {warns_data[uid]['count']}",
+        ephemeral=EPHEMERAL_GLOBAL
+    )
+
     if warns_data[uid]["count"] >= WARN_LIMIT:
         await interaction.channel.send(f"{user.mention} kick temporaire ({KICK_DURATION}s)")
         try:
-            await user.edit(communication_disabled_until=datetime.utcnow()+timedelta(seconds=KICK_DURATION))
+            # CORRECTION: Utiliser datetime.now(timezone.utc) au lieu de utcnow()
+            timeout_until = datetime.now(timezone.utc) + timedelta(seconds=KICK_DURATION)
+            await user.edit(timed_out_until=timeout_until)
         except Exception as e:
             logger.error(f"Erreur kick temporaire: {e}")
 
@@ -708,37 +715,45 @@ async def logs_command(interaction: discord.Interaction):
 
 @bot.tree.command(name="reboot", description="Redémarre le bot") 
 async def reboot_command(interaction: discord.Interaction):
-    user = interaction.user
-    name = interaction.command.name
-    logger.info(f"L'utilisateur {user} a exécuté la commande {name}")
-#    await interaction.response.send_message("🚧 Fonctionnalité en construction.", ephemeral=EPHEMERAL_GLOBAL)
+    cmd_user = interaction.user
+    cmd_name = interaction.command.name
+    logger.info(f"L'utilisateur {cmd_user} a exécuté la commande {cmd_name}")
 
     if not is_admin(interaction):
-        await interaction.response.send_message("permission_denied", ephemeral=EPHEMERAL_GLOBAL
-    )
-    return
+        await interaction.response.send_message(
+            t("permission_denied", interaction),
+            ephemeral=EPHEMERAL_GLOBAL
+        )
+        return  # Ce return est correct ici
 
-    await interaction.response.send_message("🔄 Redémarrage du bot...", ephemeral=EPHEMERAL_GLOBAL
+    # Code exécuté seulement si admin
+    await interaction.response.send_message(
+        "🔄 Redémarrage du bot...",
+        ephemeral=EPHEMERAL_GLOBAL
     )
 
     logger.info("🔄 Redémarrage demandé par %s", interaction.user)
     await bot.close()
-    os.execv(sys.executable, [sys.executable] + sys.argv)
-
-@bot.tree.command(name="upgrade", description="Met à jour le bot depuis Git")
+    os.execv(sys.executable, [sys.executable] + sys.argv)@bot.tree.command(name="upgrade", description="Met à jour le bot depuis Git")
 async def upgrade_command(interaction: discord.Interaction):
-    user = interaction.user
-    name = interaction.command.name
-    logger.info(f"L'utilisateur {user} a exécuté la commande {name}")
-#    await interaction.response.send_message("🚧 Fonctionnalité en construction.", ephemeral=EPHEMERAL_GLOBAL)
+    cmd_user = interaction.user
+    cmd_name = interaction.command.name
+    logger.info(f"L'utilisateur {cmd_user} a exécuté la commande {cmd_name}")
 
     if not is_admin(interaction):
-        await interaction.response.send_message("permission_denied", ephemeral=EPHEMERAL_GLOBAL
-)
-        return
-    await interaction.response.send_message("⬆️ Mise à jour du bot en cours...", ephemeral=EPHEMERAL_GLOBAL
-)
+        await interaction.response.send_message(
+            t("permission_denied", interaction),
+            ephemeral=EPHEMERAL_GLOBAL
+        )
+        return  # Ce return est correct ici
+
+    # Code exécuté seulement si admin
+    await interaction.response.send_message(
+        "⬆️ Mise à jour du bot en cours...",
+        ephemeral=EPHEMERAL_GLOBAL
+    )
     logger.info("⬆️ Mise à jour demandée par %s", interaction.user)
+
     try:
         result = subprocess.run(["git", "pull"], capture_output=True, text=True)
         output = result.stdout + "\n" + result.stderr
@@ -747,9 +762,10 @@ async def upgrade_command(interaction: discord.Interaction):
         os.execv(sys.executable, [sys.executable] + sys.argv)
     except Exception as e:
         logger.error(f"Erreur lors de la mise à jour: {e}")
-        await interaction.followup.send(f"❌ Erreur mise à jour: {e}", ephemeral=EPHEMERAL_GLOBAL
-)
-
+        await interaction.followup.send(
+            f"❌ Erreur mise à jour: {e}",
+            ephemeral=EPHEMERAL_GLOBAL
+        )
 
 @bot.tree.command(name="ephemeral", description="Active ou désactive les messages éphémères")
 @app_commands.describe(option="true pour activer, false pour désactiver")

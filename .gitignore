@@ -1,26 +1,24 @@
 # Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+*.py[cod]
 
 # Environnements / secrets
+.venv/
 .env
 var.env
-token.env
-*.csv
-warns.csv
-
 
 # Logs
-*.log
 logs/
+*.log
 
 # IDE
 .idea/
 .vscode/
+*.iml
 
 # OS
 .DS_Store
 Thumbs.db
-
-# venv
-.venv/

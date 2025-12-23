@@ -11,11 +11,11 @@ from tickets import create_ticket, rembourse, calcul_solde, close_ticket
 from utils import generate_ticket_id, cents_to_euros, euros_to_cents, embed_color
 from storage import load_json
 
-version = "v.3.1.1-test - 2025-12-17 - 16:05"
+version = "v.0.0.0-test - 2025-12-23 - 16:30"
 
 # CHARGEMENT ENV
 load_dotenv("var.env")
-TOKEN = os.getenv("TOKEN")
+TOKEN = os.getenv("NUDE_COMPTA_TOKEN")
 GUILD_ID = int(os.getenv("GUILD_ID"))
 LOG_CHANNEL_ID = int(os.getenv("LOG_CHANNEL_ID"))
 
