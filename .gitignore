@@ -6,6 +6,9 @@ __pycache__/
 .env
 var.env
 token.env
+*.csv
+warns.csv
+
 
 # Logs
 *.log
