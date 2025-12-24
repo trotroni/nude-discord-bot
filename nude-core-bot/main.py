@@ -64,7 +64,8 @@ logger = logging.getLogger("DiscordBot")
 load_dotenv(dotenv_path="../var.env")
 
 NUDE_CORE_TOKEN = os.getenv("NUDE_CORE_TOKEN")
-GUILD_ID = os.getenv("GUILD_ID")
+GUILD_ID_STR = os.getenv("GUILD_ID")
+GUILD_ID = int(GUILD_ID_STR)
 CHANNEL_ID_NOTIF = os.getenv("CHANNEL_ID_NOTIF")
 ADMIN_ROLE_ID = os.getenv("ADMIN_ROLE_ID")
 DEFAULT_LANGUAGE = os.getenv("DEFAULT_LANGUAGE", "fr")
@@ -254,6 +255,7 @@ warns_data = load_warns()
 
 @bot.event
 async def on_ready():
+    """
     logger.info(f"✅ Bot connecté en tant que {bot.user}")
 
     try:
@@ -300,6 +302,14 @@ async def on_ready():
 
     except Exception as e:
         logger.error(f"Erreur synchronisation commandes : {e}")
+"""
+
+    guild = bot.get_guild(GUILD_ID)
+    if guild is None:
+        print("Erreur : le bot n'a pas accès à la guild")
+        return
+    await bot.tree.sync(guild=guild)
+    print(f"Bot connecté : {bot.user} - commandes synchronisées sur la guild {guild.name}")
 
     if CHANNEL_ID_NOTIF:
         try:
