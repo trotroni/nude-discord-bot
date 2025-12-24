@@ -73,8 +73,8 @@ EPHEMERAL_GLOBAL = ephemeral_env == "true"
 VERSION = os.getenv("VERSION")
 
 if not NUDE_CORE_TOKEN:
-    logger.error("❌ DISCORD_TOKEN manquant dans les fichiers .env")
-    raise ValueError("❌ DISCORD_TOKEN manquant dans les fichiers .env")
+    logger.error("❌ NUDE_CORE_TOKEN manquant dans les fichiers .env")
+    raise ValueError("❌ NUDE_CORE_TOKEN manquant dans les fichiers .env")
 elif not GUILD_ID:
     logger.error("❌ GUILD_ID manquant dans les fichiers .env")
     raise ValueError("❌ GUILD_ID manquant dans les fichiers .env")
@@ -734,7 +734,9 @@ async def reboot_command(interaction: discord.Interaction):
 
     logger.info("🔄 Redémarrage demandé par %s", interaction.user)
     await bot.close()
-    os.execv(sys.executable, [sys.executable] + sys.argv)@bot.tree.command(name="upgrade", description="Met à jour le bot depuis Git")
+    (os.execv(sys.executable, [sys.executable] + sys.argv)
+
+@bot.tree.command(name="upgrade", description="Met à jour le bot depuis Git"))
 async def upgrade_command(interaction: discord.Interaction):
     cmd_user = interaction.user
     cmd_name = interaction.command.name
