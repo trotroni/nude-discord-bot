@@ -15,9 +15,18 @@ version = "v.0.0.0-test - 2025-12-23 - 16:30"
 # CHARGEMENT ENV
 load_dotenv("var.env")
 TOKEN = os.getenv("NUDE_COMPTA_TOKEN")
-GUILD_ID = int(os.getenv("GUILD_ID"))
+GUILD_ID_STR = os.getenv("GUILD_ID")
+LOG_CHANNEL_ID_STR = os.getenv("LOG_CHANNEL_ID")
+
+if not TOKEN:
+    raise ValueError("La variable NUDE_COMPTA_TOKEN n'est pas définie dans var.env")
+if not GUILD_ID_STR:
+    raise ValueError("La variable GUILD_ID n'est pas définie dans var.env")
+
+GUILD_ID = int(GUILD_ID_STR)
 guild_obj = discord.Object(id=GUILD_ID)
-LOG_CHANNEL_ID = int(os.getenv("LOG_CHANNEL_ID")) if os.getenv("LOG_CHANNEL_ID") else None
+
+LOG_CHANNEL_ID = int(LOG_CHANNEL_ID_STR) if LOG_CHANNEL_ID_STR else None
 
 # CONFIG BOT
 INTENTS = discord.Intents.default()
