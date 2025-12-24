@@ -334,6 +334,21 @@ async def on_ready():
         except Exception as e:
             logger.error(f"❌ Impossible d'envoyer la notification de démarrage : {e}")
 
+    try:
+        channel = bot.get_channel(int(1417564003760082978))
+        if channel:
+            embed = discord.Embed(
+                title=lang_manager.get("Joyeux Noël !"),
+                description=lang_manager.get("J'espère que vos cadeaux vous plaisent ! 🎁"),
+                color=discord.Color.red()
+            )
+            await channel.send(embed=embed)
+            logger.info(f"✅ Message envoyé dans le salon: {channel} | ID: {CHANNEL_ID_NOTIF}")
+        else:
+            logger.warning("⚠️ CHANNEL_ID_NOTIF introuvable ou non valide.")
+    except Exception as e:
+        logger.error(f"❌ Impossible d'envoyer la notification de démarrage : {e}")
+
 @bot.event
 async def on_message(message):
     if message.author.bot:
