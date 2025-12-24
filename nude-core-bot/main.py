@@ -63,7 +63,7 @@ logger = logging.getLogger("DiscordBot")
 
 load_dotenv(dotenv_path="../var.env")
 
-DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+NUDE_CORE_TOKEN = os.getenv("NUDE_CORE_TOKEN")
 GUILD_ID = os.getenv("GUILD_ID")
 CHANNEL_ID_NOTIF = os.getenv("CHANNEL_ID_NOTIF")
 ADMIN_ROLE_ID = os.getenv("ADMIN_ROLE_ID")
@@ -797,4 +797,4 @@ async def test_command(interaction: discord.Interaction):
 # LANCEMENT DU BOT
 # ========================================
 if __name__ == "__main__":
-    bot.run(DISCORD_TOKEN)
+    bot.run(NUDE_CORE_TOKEN)
