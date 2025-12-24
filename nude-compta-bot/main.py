@@ -13,8 +13,8 @@ from storage import load_json
 version = "v.0.0.0-test - 2025-12-23 - 16:30"
 
 # CHARGEMENT ENV
-load_dotenv("var.env")
-TOKEN = os.getenv("NUDE_COMPTA_TOKEN")
+load_dotenv(dotenv_path="../var.env")
+NUDE_COMPTA_TOKEN = os.getenv("NUDE_COMPTA_TOKEN")
 GUILD_ID_STR = os.getenv("GUILD_ID")
 LOG_CHANNEL_ID_STR = os.getenv("LOG_CHANNEL_ID")
 
@@ -464,10 +464,7 @@ async def earliest_tickets(interaction: Interaction):
       # view.add_item(Button(label="Rembourser", style=discord.ButtonStyle.green, custom_id=f"remb_{tid}"))
       # view.add_item(Button(label="Fermer", style=discord.ButtonStyle.danger, custom_id=f"close_{tid}"))
 
-    await interaction.followup.send(embed=embed, 
-                                  # view=view, 
-                                    allowed_mentions=AllowedMentions(users=True)
-                                    )
+    await interaction.followup.send(embed=embed, allowed_mentions=AllowedMentions(users=True))
 
 # LANCEMENT BOT
-bot.run(TOKEN)
+bot.run(NUDE_COMPTA_TOKEN)
