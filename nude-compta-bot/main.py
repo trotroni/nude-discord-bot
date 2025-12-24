@@ -18,7 +18,7 @@ NUDE_COMPTA_TOKEN = os.getenv("NUDE_COMPTA_TOKEN")
 GUILD_ID_STR = os.getenv("GUILD_ID")
 LOG_CHANNEL_ID_STR = os.getenv("LOG_CHANNEL_ID")
 
-if not TOKEN:
+if not NUDE_COMPTA_TOKEN:
     raise ValueError("La variable NUDE_COMPTA_TOKEN n'est pas définie dans var.env")
 if not GUILD_ID_STR:
     raise ValueError("La variable GUILD_ID n'est pas définie dans var.env")
