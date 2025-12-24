@@ -1,11 +1,11 @@
 import discord
+import os
+
 from discord import app_commands, Embed, Interaction
 from discord.ext import commands
 from discord import AllowedMentions
 from dotenv import load_dotenv
-from datetime import datetime
-import os
-
+from datetime import datetime, UTC
 from tickets import create_ticket, rembourse, calcul_solde, close_ticket
 from utils import generate_ticket_id, cents_to_euros, euros_to_cents, embed_color
 from storage import load_json
@@ -15,16 +15,15 @@ version = "v.0.0.0-test - 2025-12-23 - 16:30"
 # CHARGEMENT ENV
 load_dotenv("var.env")
 TOKEN = os.getenv("NUDE_COMPTA_TOKEN")
-GUILD_ID = os.getenv("GUILD_ID")
-LOG_CHANNEL_ID = os.getenv("LOG_CHANNEL_ID")
+GUILD_ID = int(os.getenv("GUILD_ID"))
+guild_obj = discord.Object(id=GUILD_ID)
+LOG_CHANNEL_ID = int(os.getenv("LOG_CHANNEL_ID")) if os.getenv("LOG_CHANNEL_ID") else None
 
 # CONFIG BOT
 INTENTS = discord.Intents.default()
 INTENTS.message_content = True
 INTENTS.members = True
 bot = commands.Bot(command_prefix="!", intents=INTENTS)
-
-guild_obj = discord.Object(id=GUILD_ID)
 
 # ON_READY
 @bot.event
@@ -49,11 +48,12 @@ async def p2p_ticket(interaction: discord.Interaction,
                      crediteur: discord.Member,
                      montant: float,
                      motif: str):
+    await interaction.response.defer()
     if debiteur.id == crediteur.id:
-        await interaction.response.send_message("Un utilisateur ne peut pas se devoir à lui-même.", ephemeral=False)
+        await interaction.response.followup.send("Un utilisateur ne peut pas se devoir à lui-même.", ephemeral=False)
         return
     if montant <= 0:
-        await interaction.response.send_message("Le montant doit être positif.", ephemeral=False)
+        await interaction.response.followup.send("Le montant doit être positif.", ephemeral=False)
         return
 
     montant_c = euros_to_cents(montant)
@@ -63,7 +63,7 @@ async def p2p_ticket(interaction: discord.Interaction,
     try:
         create_ticket(ticket_id, "p2p", str(interaction.user.id), debiteurs, str(crediteur.id), montant_c, motif)
     except Exception as e:
-        await interaction.response.send_message(f"Erreur : {e}", ephemeral=False)
+        await interaction.response.followup.send(f"Erreur : {e}", ephemeral=False)
         return
 
     embed = discord.Embed(
@@ -73,7 +73,7 @@ async def p2p_ticket(interaction: discord.Interaction,
     )
     embed.add_field(name="Motif", value=f"`{motif}`", inline=False)
         
-    await interaction.response.send_message(embed=embed,allowed_mentions=AllowedMentions(users=True))
+    await interaction.response.followup.send(embed=embed,allowed_mentions=AllowedMentions(users=True))
 
 # /split_ticket
 @bot.tree.command(
@@ -95,17 +95,17 @@ async def split_ticket(
     motif: str
 ):
     await interaction.response.defer()
-    # Validation
+
     mentions = debiteurs.split()
     if not mentions:
-        await interaction.response.send_message(
+        await interaction.response.followup.send(
             "Vous devez mentionner au moins un débiteur.",
             ephemeral=False
         )
         return
 
     if montant <= 0:
-        await interaction.response.send_message(
+        await interaction.response.followup.send(
             "Le montant doit être positif.",
             ephemeral=False
         )
@@ -140,7 +140,7 @@ async def split_ticket(
             motif
         )
     except Exception as e:
-        await interaction.response.send_message(
+        await interaction.response.followup.send(
             f"Erreur : {e}",
             ephemeral=False
         )
