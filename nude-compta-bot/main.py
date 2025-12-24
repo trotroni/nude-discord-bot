@@ -16,7 +16,7 @@ version = "v.0.0.0-test - 2025-12-23 - 16:30"
 # CHARGEMENT ENV
 load_dotenv("var.env")
 TOKEN = os.getenv("NUDE_COMPTA_TOKEN")
-GUILD_ID = int(os.getenv("GUILD_ID"))
+GUILD_ID = os.getenv("GUILD_ID")
 LOG_CHANNEL_ID = int(os.getenv("LOG_CHANNEL_ID"))
 
 # CONFIG BOT
