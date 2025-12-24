@@ -1,6 +1,5 @@
 import discord
-from discord import app_commands, Embed, Color, Interaction
-from discord.ui import View, Button
+from discord import app_commands, Embed, Interaction
 from discord.ext import commands
 from discord import AllowedMentions
 from dotenv import load_dotenv
