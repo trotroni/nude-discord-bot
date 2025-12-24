@@ -72,7 +72,7 @@ ephemeral_env = os.getenv("EPHEMERAL_GLOBAL", "true").lower()
 EPHEMERAL_GLOBAL = ephemeral_env == "true"
 VERSION = os.getenv("VERSION")
 
-if not DISCORD_TOKEN:
+if not NUDE_CORE_TOKEN:
     logger.error("❌ DISCORD_TOKEN manquant dans les fichiers .env")
     raise ValueError("❌ DISCORD_TOKEN manquant dans les fichiers .env")
 elif not GUILD_ID:
